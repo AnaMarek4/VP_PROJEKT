@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
+
+    <style>
+        :root{
+            background-color: #FAFAFA;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        h1{
+          text-align: center;
+          padding: 20px;
+          color: #446f60;
+          font-family: 'Courier New', Courier, monospace;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        #map {
+            flex: 1;
+            margin-bottom: 10px;
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+        .highlight {
+            stroke: black !important;
+            stroke-width: 2 !important;
+        }
+        #zupanija-info {
+            position: absolute;
+            bottom: 100px;
+            right: 200px;
+            padding: 10px;
+        }
+        #bar-chart {
+            flex: 1;
+            margin-left: 10px;
+            margin-bottom: 10px;
+        }
+        .spol {
+            margin-left: 910px;
+        }
+        #charts-container {
+            display: flex;
+            flex-direction: row;
+            margin-left: 150px;
+            margin-top: 100px;
+            justify-content: space-between;
+            gap: 100px;
+        }
+        #donut-chart {
+            flex: 1;
+            margin-left: 10px;
+            margin-right: 10px;
+            margin-top: 50px;
+            width: 500px;
+        }
+        #pie-chart {
+            flex: 1;
+            margin-left: 10px;
+            margin-top: 50px;
+            width: 500px;
+        }
+        #age-chart {
+            flex: 1;
+            margin-right: 10px;
+            margin-left: 0px;
+            width: 100%;
+            height: 450px;
+            box-shadow: #061f16;
+        }  
+    </style>
+</head>
+
+<body>    
+    <h1>Analiza zaposlenosti u Republici Hrvatskoj</h1>
+    <div class="container">
+        <h2 style="margin-left: 50px;">Zaposlenost po županijama</h2>
+        <div id="map"></div>
+        <div id="zupanija-info">
+            <p id="zupanija"></p>
+            <p id="ukupno"></p>
+        </div>
+        <h2 style="margin-left: 50px;">Zaposlenost prema spolu</h2>
+        <p class="spol"><b>Muškarci &nbsp;&nbsp;&nbsp;&nbsp;Žene</b></p>
+        <svg id="bar-chart" width="1455" height="700"></svg>
+        <div id="charts-container">
+            <div class="donut-container">
+                <h2>Zaposlenost prema stupnju stručnog obrazovanja</h2>
+                <svg id="donut-chart" width="500" height="600"></svg>
+            </div>
+            <div class="pie-container">
+                <h2>Zaposlenost prema vrsti radnog odnosa</h2>
+                <svg id="pie-chart" width="500" height="600"></svg>
+            </div>
+        </div>
+        <h2 style="margin-left: 50px;">Zaposlenost prema starosti</h2>
+        <svg id="age-chart" width="1455" height="700"></svg>
+    </div>
+
+    <script>
+        var width = 1450;
+        var height = 650;
+
+        var projection = d3.geo.mercator()
+            .center([-4, 10])
+            .scale(6000)
+            .translate([17500, 4500])
+            .rotate([-180, 0]);
+
+        var path = d3.geo.path()
+            .projection(projection);
+
+        var svg = d3.select("#map").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        d3.json("zaposlenost.json", function (error, data) {
+            var data = topojson.feature(data, data.objects.layer1);
+            var color = d3.scale.linear()
+                .domain([0, 300000])
+                .range(["white", "green"]);
+
+            var g = svg.append("g");
+            g.selectAll("path.county")
+                .data(data.features)
+                .enter()
+                .append("path")
+                .attr("class", "county")
+                .attr("id", function (d) { return d.id; })
+                .attr("fill", function (d) { return color(d.properties.br_zaposlenih); })
+                .attr("d", path)
+                .style("stroke", "gray")
+                .style("stroke-width", 1)
+                .style("stroke-opacity", 1)
+                .on("mouseover", function (d) {
+                    d3.select(this).classed("highlight", true);
+                    d3.select("#zupanija").text("Naziv županije: " + d.properties.name); 
+                    d3.select("#ukupno").text("Ukupan broj zaposlenih: " + d.properties.br_zaposlenih);
+                })
+                .on("mouseout", function () {
+                    d3.select(this).classed("highlight", false);
+                    d3.select("#zupanija").text("");
+                    d3.select("#ukupno").text("");
+                });   
+        });
+
+        d3.json("djelatnosti.json", function(error, data) {
+
+            var barChartData = data;
+
+            var chartContainer = d3.select("#bar-chart");
+            var chartWidth = parseInt(chartContainer.attr("width"));
+            var chartHeight = parseInt(chartContainer.attr("height"));
+            var margin = { top: 10, right: 40, bottom: 80, left: 550 };
+            var width = (chartWidth - margin.left - margin.right) + 500;
+            var height = (chartHeight - margin.top - margin.bottom) + 150;
+
+            var yScale = d3.scale.ordinal()
+                .domain(barChartData.map(function(d) { return d.category; }))
+                .rangeRoundBands([margin.top, height - margin.bottom], 0.6);
+
+            var xScale = d3.scale.linear()
+                .domain([
+                    d3.min(barChartData, function(d) { return Math.min(d.br_muskaraca, d.br_zena); }),
+                    d3.max(barChartData, function(d) { return Math.max(d.br_muskaraca, d.br_zena); })
+                ])
+                .range([margin.left, width - margin.right]);
+
+            chartContainer.selectAll(".bar-women")
+                .data(barChartData)
+                .enter()
+                .append("rect")
+                .attr("class", "bar-women")
+                .attr("x", function(d) { return xScale(Math.min(0, d.br_zena)); })
+                .attr("y", function(d) { return yScale(d.category); })
+                .attr("width", function(d) { return Math.abs(xScale(d.br_zena) - xScale(0)); })
+                .attr("height", yScale.rangeBand())
+                .attr("fill", "#ff3333");
+                
+
+            var formatValue = function(value) {
+                return value < 0 ? -value : value;
+            };
+
+            chartContainer.selectAll(".bar-men")
+                .data(barChartData)
+                .enter()
+                .append("rect")
+                .attr("class", "bar-men")
+                .attr("x", function(d) { return xScale(Math.min(0, d.br_muskaraca)); })
+                .attr("y", function(d) { return yScale(d.category); })
+                .attr("width", function(d) { return Math.abs(xScale(d.br_muskaraca) - xScale(0)); })
+                .attr("height", yScale.rangeBand())
+                .attr("fill", "#66b3ff");
+
+            chartContainer.selectAll(".category-label")
+                .data(barChartData)
+                .enter()
+                .append("text")
+                .attr("class", "category-label")
+                .attr("x", margin.left - 100)
+                .attr("y", function(d) { return yScale(d.category) + yScale.rangeBand() / 2 + 4; })
+                .text(function(d) { return d.category; })
+                .attr("text-anchor", "end")
+                .attr("fill", "black")
+                .attr("font-size", "15px");
+
+            chartContainer.selectAll(".women-label")
+                .data(barChartData)
+                .enter()
+                .append("text")
+                .attr("class", "women-label")
+                .attr("x", function(d) { return xScale(d.br_zena) + 5; })
+                .attr("y", function(d) { return yScale(d.category) + yScale.rangeBand() / 2 + 4; })
+                .text(function(d) { return d.br_zena; })
+                .attr("fill", "black")
+                .attr("font-size", "15px");
+
+            chartContainer.selectAll(".men-label")
+                .data(barChartData)
+                .enter()
+                .append("text")
+                .attr("class", "men-label")
+                .attr("x", function(d) { return xScale(d.br_muskaraca) - 5; })
+                .attr("y", function(d) { return yScale(d.category) + yScale.rangeBand() / 2 + 4; })
+                .text(function(d) { return formatValue(d.br_muskaraca); }) 
+                .attr("text-anchor", "end")
+                .attr("fill", "black")
+                .attr("font-size", "15px");
+
+            chartContainer.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                .call(d3.axisLeft(yScale));
+        });
+
+        d3.json("obrazovanje.json", function(error, data) {
+
+            var donutChartData = data;
+
+            var donutChartContainer = d3.select("#donut-chart");
+            var donutChartWidth = parseInt(donutChartContainer.attr("width"));
+            var donutChartHeight = parseInt(donutChartContainer.attr("height"));
+            var donutRadius = Math.min(donutChartWidth, donutChartHeight) / 2;
+            var donutColor = d3.scale.category20();
+
+            donutChartData.sort(function(a, b) {
+                return b.br_zaposlenih_prema_stupnju_obrazovanja - a.br_zaposlenih_prema_stupnju_obrazovanja;
+            });
+
+            var donutArc = d3.svg.arc()
+                .innerRadius(donutRadius * 0.)
+                .outerRadius(donutRadius * 0.6);
+
+            var donut = d3.layout.pie()
+                .value(function(d) { return d.br_zaposlenih_prema_stupnju_obrazovanja; })
+                .sort(null);
+
+            var donutSvg = donutChartContainer.append("g")
+                .attr("transform", "translate(" + (donutChartWidth / 2) + "," + (donutChartHeight / 2) + ")");
+
+            var donutPath = donutSvg.selectAll("path")
+                .data(donut(donutChartData))
+                .enter()
+                .append("path")
+                .attr("d", donutArc)
+                .attr("fill", function(d, i) { return donutColor(i); })
+                .on("mouseover", function(d) {
+                    d3.select(this).attr("stroke", "white").attr("stroke-width", "3px");
+                    donutSvg.append("text")
+                        .attr("class", "donut-label")
+                        .attr("transform", function() { return "translate(" + donutArc.centroid(d) + ")"; })
+                        .style("text-anchor", "middle")
+                        .style("font-weight", "bold") 
+                        .text(function() { return d.data.br_zaposlenih_prema_stupnju_obrazovanja; });
+                })
+                .on("mouseout", function(d) {
+                    d3.select(this).attr("stroke", "none");
+                    donutSvg.select(".donut-label").remove();
+                });
+
+            var donutLegend = donutChartContainer.selectAll(".legend")
+                .data(donutChartData)
+                .enter().append("g")
+                .attr("class", "legend")
+                .attr("transform", function(d, i) { return "translate(0," + (i * 20) + ")"; });
+
+            donutLegend.append("rect")
+                .attr("x", donutChartWidth - 18)
+                .attr("width", 18)
+                .attr("height", 18)
+                .style("fill", function(d, i) { return donutColor(i); });
+
+            donutLegend.append("text")
+                .attr("x", donutChartWidth - 24)
+                .attr("y", 9)
+                .attr("dy", ".35em")
+                .style("text-anchor", "end")
+                .text(function(d) { return d.stupanj_stručnog_obrazovanja; });
+        });
+
+        d3.json("odnos.json", function(error, data) {
+
+            var pieChartData = data;
+
+            var pieChartContainer = d3.select("#pie-chart");
+            var pieChartWidth = parseInt(pieChartContainer.attr("width"));
+            var pieChartHeight = parseInt(pieChartContainer.attr("height"));
+            var pieRadius = Math.min(pieChartWidth, pieChartHeight) / 2;
+            var pieColor = d3.scale.category10();
+
+            pieChartData.sort(function(a, b) {
+                return b.br_zaposlenih_prema_radnom_odnosu - a.br_zaposlenih_prema_radnom_odnosu;
+            });
+
+            var pieArc = d3.svg.arc()
+                .innerRadius(pieRadius * 0.3)
+                .outerRadius(pieRadius * 0.6);
+
+            var pie = d3.layout.pie()
+                .value(function(d) { return d.br_zaposlenih_prema_radnom_odnosu; })
+                .sort(null);
+
+            var pieSvg = pieChartContainer.append("g")
+                .attr("transform", "translate(" + (pieChartWidth / 2) + "," + (pieChartHeight / 2) + ")");
+
+            var piePath = pieSvg.selectAll("path")
+                .data(pie(pieChartData))
+                .enter()
+                .append("path")
+                .attr("d", pieArc)
+                .attr("fill", function(d, i) { return pieColor(i); })
+                .on("mouseover", function(d) {
+                    d3.select(this).attr("stroke", "white").attr("stroke-width", "3px");
+                    pieSvg.append("text")
+                        .attr("class", "pie-label")
+                        .attr("transform", function() { return "translate(" + pieArc.centroid(d) + ")"; })
+                        .attr("dy", ".35em")
+                        .style("text-anchor", "middle")
+                        .style("font-weight", "bold") 
+                        .text(function() { return d.data.br_zaposlenih_prema_radnom_odnosu; });
+                })
+                .on("mouseout", function(d) {
+                    d3.select(this).attr("stroke", "none");
+                    pieSvg.select(".pie-label").remove();
+                });
+
+            var pieLegend = pieChartContainer.selectAll(".legend")
+                .data(pieChartData)
+                .enter().append("g")
+                .attr("class", "legend")
+                .attr("transform", function(d, i) { return "translate(0," + (i * 20) + ")"; });
+
+            pieLegend.append("rect")
+                .attr("x", pieChartWidth - 18)
+                .attr("width", 18)
+                .attr("height", 18)
+                .style("fill", function(d, i) { return pieColor(i); });
+
+            pieLegend.append("text")
+                .attr("x", pieChartWidth - 24)
+                .attr("y", 9)
+                .attr("dy", ".35em")
+                .style("text-anchor", "end")
+                .text(function(d) { return d.vrsta_radnog_odnosa; });
+        });
+
+        d3.json("starost.json", function(error, data) {
+
+            var barChartData = data.map(function(d) {
+                return {
+                dob: d.dob,
+                ukupno: d.ukupno
+                };
+            });
+
+            var chartContainer = d3.select("#age-chart");
+            var chartWidth = parseInt(chartContainer.attr("width"));
+            var chartHeight = parseInt(chartContainer.attr("height"));
+            var margin = { top: 30, right: 50, bottom: 100, left: 100 };
+            var width = chartWidth - margin.left - margin.right;
+            var height = chartHeight - margin.top - margin.bottom;
+
+            var xScale = d3.scale.ordinal()
+                .domain(barChartData.map(function(d) { return d.dob; }))
+                .rangeRoundBands([margin.left, width - margin.right], 0.4);
+
+            var yScale = d3.scale.linear()
+                .domain([0, d3.max(data, function (d) { return d.ukupno; })])
+                .range([height - margin.bottom, margin.top]);
+
+            var xAxis = d3.svg.axis()
+                .scale(xScale)
+                .orient("bottom");
+
+            var yAxis = d3.svg.axis()
+                .scale(yScale)
+                .orient("left");
+
+            var chart = chartContainer.append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            chart.selectAll(".bar")
+                .data(barChartData)
+                .enter()
+                .append("rect")
+                .attr("class", "bar")
+                .attr("x", function(d) { return xScale(d.dob); })
+                .attr("y", function(d) { return yScale(d.ukupno); })
+                .attr("width", xScale.rangeBand())
+                .attr("height", function(d) { return height - margin.bottom - yScale(d.ukupno); })
+                .attr("fill", "#088A68")
+                .on("mouseover", function(d) {
+                    d3.selectAll(".bar-label").style("display", "none");
+                    d3.select(this).attr("fill", "#9FC8BD");
+                    labels.style("display", "block")
+                        .selectAll(".bar-label")
+                        .filter(function(label) {
+                            return label.dob === d.dob;
+                        })
+                        .style("display", "block");
+                })
+                .on("mouseout", function(d) {
+                    d3.select(this).attr("fill", "#088A68");
+                    labels.style("display", "none");
+                });
+
+            chart.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + (height - margin.bottom) + ")")
+                .call(xAxis)
+                .selectAll("text")
+                .attr("transform", "rotate(-45)")
+                .style("text-anchor", "end")
+                .attr("dx", "-.8em")
+                .attr("dy", ".15em");
+
+            chart.append("g")
+                .attr("class", "y axis")
+                .attr("transform", "translate(" + margin.left + ".0)")
+                .call(yAxis);
+                
+            chart.append("text")
+                .attr("x", width / 2)
+                .attr("y", height - margin.bottom / 20)
+                .attr("text-anchor", "middle")
+                .text("Dob");
+
+            chart.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -height / 2.5)
+                .attr("y", -margin.left / 5)
+                .attr("text-anchor", "middle")
+                .text("Broj zaposlenih");
+
+            var labels = chartContainer.append("g")
+                .attr("class", "labels")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                .style("display", "none");
+
+            labels.selectAll(".bar-label")          
+                .data(barChartData)
+                .enter()
+                .append("text")
+                .attr("class", "bar-label")
+                .attr("x", function(d) { return xScale(d.dob) + xScale.rangeBand() / 2; })
+                .attr("y", function(d) { return yScale(d.ukupno) - 5; })
+                .attr("text-anchor", "middle")
+                .text(function(d) { return d.ukupno; })
+                .attr("fill", "black")
+                .attr("font-size", "15px");
+        });
+
+    </script>
+</body>
+</html>

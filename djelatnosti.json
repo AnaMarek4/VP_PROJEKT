@@ -1,0 +1,97 @@
+[
+    {
+        "category": "Poljoprivreda, šumarstvo i ribarstvo",
+        "br_zena": 7330,
+        "br_muskaraca": -17038
+       },
+       {
+        "category": "Rudarstvo i vađenje",
+        "br_zena": 417,
+        "br_muskaraca": -3291
+       },
+       {
+        "category": "Prerađivačka industrija",
+        "br_zena": 78523,
+        "br_muskaraca": -140573
+       },
+       {
+        "category": "Opskrba električnom energijom, plinom, parom i klimatizacija",
+        "br_zena": 3259,
+        "br_muskaraca": -11165
+       },
+       {
+        "category": "Opskrba vodom",
+        "br_zena": 5667,
+        "br_muskaraca": -20960
+       },
+       {
+        "category": "Građevinarstvo",
+        "br_zena": 10220,
+        "br_muskaraca": -90414
+       },
+       {
+        "category": "Trgovina na veliko i na malo",
+        "br_zena": 109188,
+        "br_muskaraca": -89343
+       },
+       {
+        "category": "Prijevoz i skladištenje",
+        "br_zena": 16480,
+        "br_muskaraca": -52505
+       },
+       {
+        "category": "Djelatnosti pružanja smještaja te pripreme i usluživanja hrane",
+        "br_zena": 35325,
+        "br_muskaraca": -32400
+       },
+       {
+        "category": "Informacije i komunikacije",
+        "br_zena": 18394,
+        "br_muskaraca": -31382
+       },
+       {
+        "category": "Financijske djelatnosti i djelatnosti osiguranja",
+        "br_zena": 24542,
+        "br_muskaraca": -11374
+       },
+       {
+        "category": "Poslovanje nekretninama",
+        "br_zena": 4051,
+        "br_muskaraca": -4680
+       },
+       {
+        "category": "Stručne, znanstvene i tehničke djelatnosti",
+        "br_zena": 33378,
+        "br_muskaraca": -34041
+       },
+       {
+        "category": "Administrativne i pomoćne uslužne djelatnosti",
+        "br_zena": 21873,
+        "br_muskaraca": -25166
+       },
+       {
+        "category": "Javna uprava i obrana",
+        "br_zena": 51826,
+        "br_muskaraca": -52969
+       },
+       {
+        "category": "Obrazovanje",
+        "br_zena": 98913,
+        "br_muskaraca": -27495
+       },
+       {
+        "category": "Djelatnosti zdravstvene zaštite i socijalne skrbi",
+        "br_zena": 82200,
+        "br_muskaraca": -23290
+       },
+       {
+        "category": "Umjetnost, zabava i rekreacija",
+        "br_zena": 14597,
+        "br_muskaraca": -11776
+       },
+       {
+        "category": "Ostale uslužne djelatnosti",
+        "br_zena": 13805,
+        "br_muskaraca": -7140
+       }
+]

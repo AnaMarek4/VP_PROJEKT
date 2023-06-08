@@ -1,0 +1,68 @@
+[
+    {
+     "dob": "do 18",
+     "zene": 679,
+     "muskarci": 1594,
+     "ukupno": 2273
+    },
+    {
+     "dob": "19-24",
+     "zene": 26457,
+     "muskarci": 42101,
+     "ukupno": 68558
+    },
+    {
+     "dob": "25-29",
+     "zene": 61162,
+     "muskarci": 69902,
+     "ukupno": 131064
+    },
+    {
+     "dob": "30-34",
+     "zene": 73224,
+     "muskarci": 80705,
+     "ukupno": 153929
+    },
+    {
+     "dob": "35-39",
+     "zene": 83357,
+     "muskarci": 89045,
+     "ukupno": 172402
+    },
+    {
+     "dob": "40-44",
+     "zene": 86753,
+     "muskarci": 89760,
+     "ukupno": 176513
+    },
+    {
+     "dob": "45-49",
+     "zene": 81859,
+     "muskarci": 82153,
+     "ukupno": 164012
+    },
+    {
+     "dob": "50-54",
+     "zene": 74770,
+     "muskarci": 69211,
+     "ukupno": 143981
+    },
+    {
+     "dob": "55-59",
+     "zene": 68620,
+     "muskarci": 64554,
+     "ukupno": 133174
+    },
+    {
+     "dob": "60-64",
+     "zene": 35431,
+     "muskarci": 40695,
+     "ukupno": 76126
+    },
+    {
+     "dob": "65 i više",
+     "zene": 3634,
+     "muskarci": 7754,
+     "ukupno": 11388
+    }
+   ]
